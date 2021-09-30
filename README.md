@@ -2,6 +2,10 @@
 - Listens to request from Scoring Protocol Contract
 - Evaluates Score and 
 - Submits Score back to the contract
+
+[Read the WhitePaper](https://drive.google.com/file/d/1RcLBQIde-eLaDiXD8yqXrub2jKmoOlXH/view?usp=sharing)
+
+
 ## Instructions to run
 
 NOTE: Make sure you clone all below repositories under the same folder

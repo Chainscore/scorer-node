@@ -1,8 +1,8 @@
 const Web3 = require('web3');
 
 // const web3 = new Web3('wss://ropsten.infura.io/ws/v3/d65c95e0410745d585fe4630fb706c5f');
-const web3 = new Web3('ws://localhost:7545');
-// const web3 = new Web3('wss://ws.s0.pga.hmny.io');
+// const web3 = new Web3('ws://localhost:7545');
+const web3 = new Web3('wss://ws.s0.b.hmny.io');
 
 require('dotenv').config();
 
@@ -16,10 +16,10 @@ const scoreProtocolContract = require('../../score-contracts/build/contracts/Sco
 const ExampleTokenContract = require('../../score-contracts/build/contracts/ExampleToken.json');
 
 
-const contract = new web3.eth.Contract(faucetContract.abi, faucetContract.networks['5777'].address);
-const scoreToken = new web3.eth.Contract(scoreTokenContract.abi, scoreTokenContract.networks['5777'].address);
-const scoreProtocol = new web3.eth.Contract(scoreProtocolContract.abi, scoreProtocolContract.networks['5777'].address);
-const exampleToken = new web3.eth.Contract(ExampleTokenContract.abi, ExampleTokenContract.networks['5777'].address);
+const contract = new web3.eth.Contract(faucetContract.abi, faucetContract.networks['1666700000'].address);
+const scoreToken = new web3.eth.Contract(scoreTokenContract.abi, scoreTokenContract.networks['1666700000'].address);
+const scoreProtocol = new web3.eth.Contract(scoreProtocolContract.abi, scoreProtocolContract.networks['1666700000'].address);
+const exampleToken = new web3.eth.Contract(ExampleTokenContract.abi, ExampleTokenContract.networks['1666700000'].address);
 
 
 const privateKey = process.env.PRIVATE_KEY;
@@ -35,20 +35,21 @@ async function askForTokens() {
     let bal = await scoreToken.methods.balanceOf(contract.options.address).call();
     let fees = await scoreProtocol.methods.fees().call();
     if(bal < fees){
+        console.log("Contract doesn't hold sufficient SCORE Tokens")
+        console.log("Sending SCORE tokens ...")
         tx = scoreToken.methods.transfer(contract.options.address, '1000'+'000000000000000000');
         await sendTransaction(tx, scoreToken);
     }
 
     let balance = await exampleToken.methods.balanceOf(publicKey).call();
-    console.log(`Example Token balance before calling sendMeToken: ${balance}`);
+    console.log(`Calling sendMeTokens... Current Example-Token balance: ${balance}`);
 
     tx = contract.methods.sendMeTokens(1000);
-
     await sendTransaction(tx, contract);
 
     await new Promise(r => setTimeout(r, 5000));
     balance = await exampleToken.methods.balanceOf(publicKey).call();
-    console.log(`Balance on recieving tokens after score verification: ${balance}`);
+    console.log(`Balance on recieving tokens after Score verification: ${balance}`);
 
     } catch (err){
         console.log(err);

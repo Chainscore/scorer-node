@@ -29,13 +29,13 @@ const publicKey = process.env.PUBLIC_KEY;
 // const web3 = new Web3('ws://localhost:7545');
 const web3 = new Web3('wss://ws.s0.b.hmny.io');
 
-const scoreProtocolArtifacts = require('../score-contracts/build/contracts/ScoreProtocol.json');
+const scoreProtocolArtifacts = require('../contracts/build/contracts/ScoreProtocol.json');
 const scoreProtocolContract = new web3.eth.Contract(scoreProtocolArtifacts.abi, scoreProtocolArtifacts.networks['1666700000'].address);
 
-const stakingArtifacts = require('../score-contracts/build/contracts/sScoreToken.json');
+const stakingArtifacts = require('../contracts/build/contracts/sScoreToken.json');
 const stakingContract = new web3.eth.Contract(stakingArtifacts.abi, stakingArtifacts.networks['1666700000'].address);
 
-const scoreTokenArtifacts = require('../score-contracts/build/contracts/ScoreToken.json');
+const scoreTokenArtifacts = require('../contracts/build/contracts/ScoreToken.json');
 const scoreTokenContract = new web3.eth.Contract(scoreTokenArtifacts.abi, scoreTokenArtifacts.networks['1666700000'].address);
 
 let tx;

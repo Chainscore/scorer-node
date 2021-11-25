@@ -25,9 +25,7 @@ const Web3 = require('web3');
 const privateKey = process.env.PRIVATE_KEY;
 const publicKey = process.env.PUBLIC_KEY;
 
-// const web3 = new Web3('wss://ropsten.infura.io/ws/v3/d65c95e0410745d585fe4630fb706c5f');
-// const web3 = new Web3('ws://localhost:7545');
-const web3 = new Web3('wss://ws.s0.b.hmny.io');
+const web3 = new Web3(process.env.RPC_URL);
 
 const scoreProtocolArtifacts = require('../contracts/build/contracts/ScoreProtocol.json');
 const scoreProtocolContract = new web3.eth.Contract(scoreProtocolArtifacts.abi, scoreProtocolArtifacts.networks['1666700000'].address);

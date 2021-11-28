@@ -27,7 +27,7 @@ const publicKey = process.env.PUBLIC_KEY;
 
 const web3 = new Web3(process.env.RPC_URL);
 
-const scoreProtocolArtifacts = require('../contracts/build/contracts/ScoreProtocol.json');
+const scoreProtocolArtifacts = require('../../contracts/build/contracts/ScoreProtocol.json');
 const scoreProtocolContract = new web3.eth.Contract(scoreProtocolArtifacts.abi, scoreProtocolArtifacts.networks['1666700000'].address);
 
 const stakingArtifacts = require('../contracts/build/contracts/sScoreToken.json');

@@ -54,3 +54,6 @@ exports.getHistoricalPrice = (token_address, start, end) => {
 
 // this.getPrice('0xee06a81a695750e71a662b51066f2c74cf4478a0')
 // this.getHistoricalPrice('0xee06a81a695750e71a662b51066f2c74cf4478a0', "2021-01-10", "2021-01-20")
+// .then(resp => {
+//     console.log(resp);
+//   })

@@ -38,4 +38,7 @@ exports.getTotalValuation = (address) => {
     });
 };
 
-this.getTotalValuation("0xc98F11DAAAC76D3ef368fDF54fbbA34FfD951976");
+// this.getTotalValuation("0xc98F11DAAAC76D3ef368fDF54fbbA34FfD951976");
+// .then(resp => {
+//   console.log(resp);
+// })

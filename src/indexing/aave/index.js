@@ -1,32 +1,83 @@
-require('dotenv').config();
-
-const Web3 = require('web3');
-const web3 = new Web3(`wss://mainnet.infura.io/ws/v3/${process.env.INFURA_PROJECT_ID}`);
-
-const lendingPoolArtifacts = require("./abis/contracts/protocol/lendingpool/LendingPool.sol/LendingPool.json");
-const lendingPool = new web3.eth.Contract(lendingPoolArtifacts.abi, process.env.AAVE_LENDING_POOL_ADDRESS);
-
 const axios = require("axios");
+require("dotenv").config();
 
-const data = await axios.post(API_URL, {
-    query: `mutation updateUserCity($id: Int!, $city: String!) {
-      updateUserCity(userID: $id, city: $city){
-        id
-        name
-        age
-        city
-        knowledge{
-          language
-          frameworks
+exports.queryAaveSubgraph = (account) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(
+        process.env.AAVE_V2_HOSTED,
+        {
+          query: `query users($id: ID!){
+            users(where: {id: $id}){
+              depositHistory{
+                onBehalfOf{
+                  id
+                }
+                amount
+                reserve{
+                  underlyingAsset
+                  price{
+                    priceInEth
+                  }
+                }
+                timestamp
+              }
+              borrowHistory{
+                onBehalfOf{
+                  id
+                }
+                amount
+                reserve{
+                  underlyingAsset
+                  price{
+                    priceInEth
+                  }
+                }
+                borrowRate
+                stableTokenDebt
+                variableTokenDebt
+                timestamp
+              }
+              repayHistory{
+                onBehalfOf{
+                  id
+                }
+                reserve{
+                  underlyingAsset
+                  price{
+                    priceInEth
+                  }
+                }
+                amount
+                timestamp
+              }
+            }
+          }
+        `,
+          variables: {
+            id: account
+          },
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      }
-    }`,
-    variables: {
-      id: 2,
-      city: 'Test'
-    }
-  }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
+      )
+      .then((resp) => {
+        resolve(resp.data.data.users[0]);
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err.response.data.errors);
+      });
+  });
+};
+
+this.queryAaveSubgraph("0x64f80d81f4ae9858a9e92dce8d19ee1686cc8e04")
+  .then((resp) => {
+    console.log(resp);
+  })
+  .catch((err) => {
+    console.log(err);
+  });

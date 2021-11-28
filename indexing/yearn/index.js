@@ -1,0 +1,32 @@
+`{
+    accounts(where: {id: "0x64f80d81f4ae9858a9e92dce8d19ee1686cc8e04"}){
+      deposits{
+        timestamp
+        tokenAmount
+        sharesMinted
+      }
+      withdrawals{
+        timestamp
+        tokenAmount
+      }
+      vaultPositions{
+        vault{
+          id
+          token{
+            id
+            symbol
+          }
+          shareToken{
+            id
+            symbol
+          }
+          tags
+        }
+        balanceShares
+        balanceTokens
+        balancePosition
+        balanceProfit
+      }
+    }
+  }
+  `

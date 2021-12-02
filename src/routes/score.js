@@ -11,8 +11,3 @@ router.get('/score/normalized/:address', (req, res) => {
 });
 
 module.exports = router;
-
-/**
- * getScore()
- * getNormalizedScore()
- */

@@ -9,9 +9,22 @@ const creditRouter = require('./routes/credit');
 const scoreRouter = require('./routes/score');
 const valueRouter = require('./routes/value');
 
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
+
 // const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+
+const options = require("../swaggerAPI.json");
+const specs = swaggerJsdoc(options);
+
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, { customCss: '.swagger-ui .topbar { background-color:#6c3778 } ' })
+);
+
 
 app.use(helmet()); // https://expressjs.com/en/advanced/best-practice-security.html#use-helmet
 app.use(logger('dev'));

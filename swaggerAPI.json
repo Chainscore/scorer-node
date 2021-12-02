@@ -1,0 +1,24 @@
+{
+  "definition": {
+    "openapi": "3.0.0",
+    "info": {
+      "title": "ChainScore API",
+      "version": "0.1.0",
+      "description": "ChainScore API Documentation",
+      "license": {
+        "name": "Apache 2.0",
+        "url": "https://spdx.org/licenses/Apache.html"
+      },
+      "contact": {
+        "name": "Admin",
+        "email": "prasad@chainscore.finance"
+      }
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000/"
+      }
+    ]
+  },
+  "apis": ["./routes/books.js"]
+}

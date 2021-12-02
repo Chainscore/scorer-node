@@ -306,10 +306,10 @@ exports.getDebt = (address) => {
 /**
  * demo
  */
-this.totalDebt("0x21b9c3cc0a80ef376b27bdff23b252367404ae56")
-  .then((resp) => {
-    console.log(resp);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+// this.totalDebt("0x21b9c3cc0a80ef376b27bdff23b252367404ae56")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });

@@ -13,5 +13,21 @@ router.get('/', (req, res) => {
   `);
 });
 
+const { getScore } = require("../controllers/score");
+
+router.get('/score/:address', (req, res) => {
+  getScore(req.params.address)
+  .then((resp) => {
+    res.send({...resp});
+  })
+  .catch(err => {
+    console.log(err);
+    res.send(err);
+  })
+});
+
+// router.get('/score/normalized/:address', (req, res) => {
+//   res.send({ message: 'Hello world' });
+// });
 
 module.exports = router;

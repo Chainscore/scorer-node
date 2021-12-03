@@ -6,7 +6,7 @@ const helmet = require('helmet');
 
 const indexRouter = require('./routes/');
 const creditRouter = require('./routes/credit');
-const scoreRouter = require('./routes/score');
+// const scoreRouter = require('./routes/score');
 const valueRouter = require('./routes/value');
 
 const swaggerJsdoc = require("swagger-jsdoc");
@@ -34,7 +34,7 @@ app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/credit', creditRouter);
-app.use('/score', scoreRouter);
+// app.use('/score', scoreRouter);
 app.use('/value', valueRouter);
 
 

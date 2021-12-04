@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "pm2 start src/bin/www",
+    "stop": "pm2 stop www",
     "serve": "nodemon src/bin/www",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -50,17 +50,12 @@ exports.getFTValuation = (address) => {
   this.getFTBalances(address)
     .then((resp) => {
 
-      let result = {};
-      result.address = resp.address;
-      result.updated_at = resp.updated_at;
-      result.chain_id = resp.chain_id;
-      result.total = 0;
+      let total = 0;
 
-      tokens = resp.items
-      for (let i = 0; i < tokens.length; i++) {
-        result.total += (parseInt(tokens[i].balance) / 10 ** 18) * (tokens[i].quote_rate);
+      for (let i = 0; i < resp.items.length; i++) {
+        total += resp.items[i].balance.quote;
       }
-      resolve(result);
+      resolve({...resp, total});
     })
     .catch((err) => {
         console.log(err);
@@ -75,17 +70,13 @@ exports.getTotalValuation = (address) => {
   this.getAllBalances(address)
     .then((resp) => {
 
-      let result = {};
-      result.address = resp.address;
-      result.updated_at = resp.updated_at;
-      result.chain_id = resp.chain_id;
-      result.total = 0;
+      let total = 0;
 
-      tokens = resp.items
-      for (let i = 0; i < tokens.length; i++) {
-        result.total += (parseInt(tokens[i].balance) / 10 ** 18) * (tokens[i].quote_rate);
+      for (let i = 0; i < resp.items.length; i++) {
+        total += resp.items[i].quote;
       }
-      resolve(result);
+
+      resolve({...resp, total});
     })
     .catch((err) => {
         console.log(err);

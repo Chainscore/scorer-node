@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
-const { ftBalances, totalBalances } = require("../controllers/value");
+const { ftBalances, total_balances } = require("../controllers/value");
 
-router.get('/ft_balances/:address', (req, res) => {
+router.get('/ft/:address', (req, res) => {
     ftBalances(req.params.address)
     .then(result => {
         res.send({...result})
     })
 });
 
-router.get('/total_balances/:address', (req, res) => {
-    totalBalances(req.params.address)
+router.get('/total/:address', (req, res) => {
+    total_balances(req.params.address)
     .then(result => {
         res.send({...result})
     })

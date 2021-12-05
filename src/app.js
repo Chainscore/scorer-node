@@ -13,6 +13,7 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
 // const errorHandler = require('./middleware/errorHandler');
+const cors = require('cors')
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use(
   swaggerUi.setup(specs, { customCss: '.swagger-ui .topbar { background-color:#6c3778 } ' })
 );
 
-
+app.use(cors())
 app.use(helmet()); // https://expressjs.com/en/advanced/best-practice-security.html#use-helmet
 app.use(logger('dev'));
 app.use(express.json());

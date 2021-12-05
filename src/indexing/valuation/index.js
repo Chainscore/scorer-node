@@ -80,12 +80,12 @@ exports.getTotalValuation = (address) => {
     })
     .catch((err) => {
         console.log(err);
-        reject(err.response.data.error_message)
+        reject(err.response)
     });
   })
 };
 
-// this.getTotalValuation("0xc98F11DAAAC76D3ef368fDF54fbbA34FfD951976");
+// this.getTotalValuation("0xc98F11DAAAC76D3ef368fDF54fbbA34FfD951976")
 // .then(resp => {
 //   console.log(resp);
 // })

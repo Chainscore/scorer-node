@@ -33,7 +33,7 @@ exports.getScore = async (account) => {
     let total_borrowed_history = (await getTotalBorrowHistory(account)).total_borrowed; 
     let total_repaid_history = (await getTotalRepaymentHistory(account)).total_repaid;
 
-    console.log(total_borrowed_history, total_repaid_history);
+    // console.log(total_value, total_supplied, total_borrowed, total_borrowed_history, total_repaid_history);
 
     /**
      * Valuation
@@ -47,14 +47,15 @@ exports.getScore = async (account) => {
      * Credit Supplied
      * total_supplied UP ==>> score UP
      */
-    let supply_score = (total_supplied)/((total_value) - (total_supplied));
+    let supply_score = (total_supplied)/((total_value) - (total_supplied)) || 0;
     console.log(`Supply Score: ${supply_score}`);
 
     /**
      * Repayment
      * total_borrow_history UP && 
      */
-    let repayment_score = (total_borrowed_history)/((total_borrowed_history) - (total_repaid_history));
+    let repayment_score = (total_borrowed_history)/((total_borrowed_history) - (total_repaid_history)) || 0;
+    console.log(`Repayment Score: ${repayment_score}`);
 
     /**
      * Borrowed <<>> Repayments
@@ -63,28 +64,29 @@ exports.getScore = async (account) => {
      * total_borrowed UP total_repaid DOWN ==>> score DOWN
      * (total_borrowed)*(total_repaid)/()
      */
-    let debt_score = (total_borrowed)/((total_borrowed) - (total_repaid_history));
+    let debt_score = (total_borrowed_history)/((total_borrowed_history) - (total_repaid_history)) || 0;
+    console.log(`Debt Score: ${debt_score}`);
 
-    let score = 0.5*(value_score) + 0.2*(supply_score) + 0.2*(debt_score) + 0.1*(repayment_score);
+    let score = 0.3*(value_score) + 0.3*(supply_score) + 0.2*(debt_score) + 0.2*(repayment_score);
     console.log("Score: ", score);
 
     return {score, supply_score, value_score, debt_score, repayment_score}
 }
 
-// this.getScore("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
-//   .then((resp) => {
-//     console.log(resp);
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
-
-  this.getScore("0x1D052CC8C480B98Cc9BDb24e5F0586d47F9bd4CA")
+this.getScore("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
   .then((resp) => {
     console.log(resp);
   })
   .catch((err) => {
     console.log(err);
   });
+
+//   this.getScore("0x1D052CC8C480B98Cc9BDb24e5F0586d47F9bd4CA")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
 
   

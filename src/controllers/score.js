@@ -74,16 +74,16 @@ exports.getScore = async (account) => {
     let score = 0.3*(value_score) + 0.3*(supply_score) + 0.2*(debt_score) + 0.2*(repayment_score);
     console.log("Score: ", score);
 
-    return {score, supply_score, value_score, debt_score, repayment_score}
+    return {address: account, score, supply_score, value_score, debt_score, repayment_score}
 }
 
-this.getScore("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
-  .then((resp) => {
-    console.log(resp);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+// this.getScore("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
 
 //   this.getScore("0x1D052CC8C480B98Cc9BDb24e5F0586d47F9bd4CA")
 //   .then((resp) => {

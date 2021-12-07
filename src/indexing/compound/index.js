@@ -1,4 +1,8 @@
-const { queryCompSubgraph } = require("./graph");
+const {
+  queryCompSubgraph,
+  totalCompDebt,
+  totalCompRepaid,
+} = require("./graph");
 const {
   getCompBalances,
   getCompSupplyPosition,
@@ -15,6 +19,8 @@ const {
 
 module.exports = {
   queryCompSubgraph,
+  totalCompDebt,
+  totalCompRepaid,
 
   getCompBalances,
   getCompSupplyPosition,

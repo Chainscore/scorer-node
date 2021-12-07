@@ -1,6 +1,8 @@
 const axios = require("axios");
 require("dotenv").config();
 
+const { getSpotPrice } = require('../prices-endpoint');
+
 // {
 //   accounts: [],
 //   repayEvents: [],
@@ -90,3 +92,94 @@ exports.queryCompSubgraph = (account) => {
       });
   });
 };
+
+
+/**
+ * Get total debt
+ * @param {*} address 
+ * @returns uint debt amount
+ */
+ exports.totalCompDebt = (address) => {
+  return new Promise((resolve, reject) => {
+    this.queryCompSubgraph(address)
+      .then(async (resp) => {
+        let total_borrowed = 0;
+        let assetPrice = 0;
+        let positions = []
+        for (let i = 0; i < resp.borrowEvents.length; i++) {
+          positions.push(resp.borrowEvents[i]);
+
+          assetPrice = await getSpotPrice(resp.borrowEvents[i].underlyingSymbol);
+
+          // console.log((resp.borrowEvents[i].amount), resp.borrowEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
+
+          total_borrowed +=
+            ((resp.borrowEvents[i].amount) * (assetPrice.items[0].quote_rate)/** Price of asset */);
+        }
+        resolve({total_borrowed, positions});
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err.response.data);
+      });
+  });
+};
+
+/**
+ * Get total deposit supplied
+ * @param {*} address 
+ * @returns uint total deposit
+ */
+exports.totalCompRepaid = (address) => {
+  return new Promise((resolve, reject) => {
+    this.queryCompSubgraph(address)
+      .then(async (resp) => {
+        let total_repaid = 0;
+        let assetPrice = 0;
+
+        let positions = [];
+
+        for (let i = 0; i < resp.repayEvents.length; i++) {
+          positions.push(resp.repayEvents[i]);
+
+          assetPrice = await getSpotPrice(resp.repayEvents[i].underlyingSymbol)
+          
+          // console.log((resp.repayEvents[i].amount), resp.repayEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
+
+          total_repaid +=
+            ((resp.repayEvents[i].amount) * (assetPrice).items[0].quote_rate)/** Price of asset */;
+
+        }
+        resolve({total_repaid, positions});
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err.response.data);
+      });
+  });
+};
+
+
+// this.queryCompSubgraph("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
+
+// this.totalCompDebt("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
+
+// this.totalCompRepaid("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });

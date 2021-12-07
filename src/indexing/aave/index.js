@@ -1,8 +1,8 @@
 const {
   queryAaveSubgraph,
-  totalRepaid,
-  totalDebt,
-  totalDeposits,
+  totalAaveRepaid,
+  totalAaveDebt,
+  totalAaveDeposits,
 } = require("./graph");
 const {
   getAaveBalances,
@@ -20,9 +20,9 @@ const {
 
 module.exports = {
   queryAaveSubgraph,
-  totalRepaid,
-  totalDebt,
-  totalDeposits,
+  totalAaveRepaid,
+  totalAaveDebt,
+  totalAaveDeposits,
 
   getAaveBalances,
   getAaveSupplyPosition,

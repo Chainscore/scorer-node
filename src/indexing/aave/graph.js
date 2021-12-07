@@ -158,7 +158,8 @@ exports.queryAaveSubgraph = (account) => {
         }
       )
       .then((resp) => {
-        resolve(resp.data.data.users[0]);
+        if (resp.data.data.users[0]) resolve(resp.data.data.users[0]);
+        else resolve({});
       })
       .catch((err) => {
         console.log(err);
@@ -169,27 +170,25 @@ exports.queryAaveSubgraph = (account) => {
 
 /**
  * Get total repaid amount
- * @param {*} address 
+ * @param {*} address
  * @returns uint repaid amount
  */
-exports.totalRepaid = (address) => {
+exports.totalAaveRepaid = (address) => {
   return new Promise((resolve, reject) => {
     this.queryAaveSubgraph(address)
       .then((resp) => {
-        let debt = 0;
-        for (let i = 0; i < resp.repayHistory.length; i++) {
-          console.log(
-            resp.repayHistory[i].amount / 10 ** 18,
-            resp.repayHistory[i].reserve.symbol,
-            resp.repayHistory[i].reserve.price.priceInEth /
-              resp.repayHistory[i].reserve.price.oracle.usdPriceEth
-          );
-          debt +=
-            ((resp.repayHistory[i].amount / 10 ** 18) *
-              resp.repayHistory[i].reserve.price.priceInEth) /
-            resp.repayHistory[i].reserve.price.oracle.usdPriceEth;
+        let total_repaid = 0;
+        let positions = [];
+        if (resp.repayHistory) {
+          for (let i = 0; i < resp.repayHistory.length; i++) {
+            positions.push(resp.repayHistory[i]);
+            total_repaid +=
+              ((resp.repayHistory[i].amount / 10 ** 18) *
+                resp.repayHistory[i].reserve.price.priceInEth) /
+              resp.repayHistory[i].reserve.price.oracle.usdPriceEth;
+          }
         }
-        resolve(debt);
+        resolve({ total_repaid, positions });
       })
       .catch((err) => {
         console.log(err);
@@ -200,21 +199,25 @@ exports.totalRepaid = (address) => {
 
 /**
  * Get total debt
- * @param {*} address 
+ * @param {*} address
  * @returns uint debt amount
  */
-exports.totalDebt = (address) => {
+exports.totalAaveDebt = (address) => {
   return new Promise((resolve, reject) => {
     this.queryAaveSubgraph(address)
       .then((resp) => {
-        let debt = 0;
-        for (let i = 0; i < resp.borrowHistory.length; i++) {
-          debt +=
-            ((resp.borrowHistory[i].amount / 10 ** 18) *
-              resp.borrowHistory[i].reserve.price.priceInEth) /
-            resp.borrowHistory[i].reserve.price.oracle.usdPriceEth;
+        let total_borrowed = 0;
+        let positions = [];
+        if (resp.borrowHistory) {
+          for (let i = 0; i < resp.borrowHistory.length; i++) {
+            positions.push(resp.borrowHistory[i]);
+            total_borrowed +=
+              ((resp.borrowHistory[i].amount / 10 ** 18) *
+                resp.borrowHistory[i].reserve.price.priceInEth) /
+              resp.borrowHistory[i].reserve.price.oracle.usdPriceEth;
+          }
         }
-        resolve(debt);
+        resolve({ total_borrowed, positions });
       })
       .catch((err) => {
         console.log(err);
@@ -225,10 +228,10 @@ exports.totalDebt = (address) => {
 
 /**
  * Get total deposit supplied
- * @param {*} address 
+ * @param {*} address
  * @returns uint total deposit
  */
-exports.totalDeposits = (address) => {
+exports.totalAaveDeposits = (address) => {
   return new Promise((resolve, reject) => {
     this.queryAaveSubgraph(address)
       .then((resp) => {
@@ -248,13 +251,11 @@ exports.totalDeposits = (address) => {
   });
 };
 
-
-
 /**
  * Gets data about each debt taken
  * TODO: Implementation
- * @param {*} address 
- * @returns 
+ * @param {*} address
+ * @returns
  */
 exports.getDebt = (address) => {
   return new Promise((resolve, reject) => {
@@ -262,7 +263,7 @@ exports.getDebt = (address) => {
       .then((resp) => {
         let debt = 0;
         for (let i = 0; i < resp.borrowHistory.length; i++) {
-          if(resp.borrowHistory[i].reserve.symbol == "BUSD"){
+          if (resp.borrowHistory[i].reserve.symbol == "BUSD") {
             console.log(
               resp.borrowHistory[i].amount / 10 ** 18,
               resp.borrowHistory[i].reserve.symbol,
@@ -270,27 +271,26 @@ exports.getDebt = (address) => {
                 resp.borrowHistory[i].reserve.price.oracle.usdPriceEth
             );
             debt +=
-            ((resp.borrowHistory[i].amount / 10 ** 18) *
-              resp.borrowHistory[i].reserve.price.priceInEth) /
-            resp.borrowHistory[i].reserve.price.oracle.usdPriceEth;
+              ((resp.borrowHistory[i].amount / 10 ** 18) *
+                resp.borrowHistory[i].reserve.price.priceInEth) /
+              resp.borrowHistory[i].reserve.price.oracle.usdPriceEth;
           }
-          
         }
         console.log(debt);
         debt = 0;
         console.log("===Repay===");
         for (let i = 0; i < resp.repayHistory.length; i++) {
-          if(resp.repayHistory[i].reserve.symbol == "BUSD"){
-          console.log(
-            resp.repayHistory[i].amount / 10 ** 18,
-            resp.repayHistory[i].reserve.symbol,
-            resp.repayHistory[i].reserve.price.priceInEth /
-              resp.repayHistory[i].reserve.price.oracle.usdPriceEth
-          );
-          debt +=
-            ((resp.repayHistory[i].amount / 10 ** 18) *
-              resp.repayHistory[i].reserve.price.priceInEth) /
-            resp.repayHistory[i].reserve.price.oracle.usdPriceEth;
+          if (resp.repayHistory[i].reserve.symbol == "BUSD") {
+            console.log(
+              resp.repayHistory[i].amount / 10 ** 18,
+              resp.repayHistory[i].reserve.symbol,
+              resp.repayHistory[i].reserve.price.priceInEth /
+                resp.repayHistory[i].reserve.price.oracle.usdPriceEth
+            );
+            debt +=
+              ((resp.repayHistory[i].amount / 10 ** 18) *
+                resp.repayHistory[i].reserve.price.priceInEth) /
+              resp.repayHistory[i].reserve.price.oracle.usdPriceEth;
           }
         }
         console.log(debt);

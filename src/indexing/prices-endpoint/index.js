@@ -59,7 +59,7 @@ exports.getSpotPrice = (ticker) => {
         params: {
           "quote-currency": "USD",
           format: "JSON",
-          tickers: "ETH",
+          tickers: ticker,
           key: process.env.COVALENT_API_KEY,
         },
       })

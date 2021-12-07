@@ -1,11 +1,17 @@
 const {
   getAaveBalances,
+  totalAaveRepaid,
+  totalAaveDebt,
+
   getAaveSupplyPosition,
   getAaveBorrowPosition,
 } = require("../indexing/aave");
 
 const {
+  totalCompDebt,
+  totalCompRepaid,
   getCompBalances,
+
   getCompSupplyPosition,
   getCompBorrowPosition,
 } = require("../indexing/compound");
@@ -45,3 +51,47 @@ exports.getSupplyPosition = (address) => {
     });
   });
 };
+
+exports.getTotalBorrowHistory = (address) => {
+  return new Promise(async (resolve, reject) => {
+    let comp, aave;
+
+    try {
+      comp = await totalCompDebt(address);
+      aave = await totalAaveDebt(address);
+    } catch (err) {
+      reject(err);
+    }
+
+    resolve({
+      total_borrowed: comp.total_borrowed + aave.total_borrowed,
+      positions: comp.positions.concat(aave.positions),
+    });
+  });
+}
+
+exports.getTotalRepaymentHistory = (address) => {
+  return new Promise(async (resolve, reject) => {
+    let comp, aave;
+
+    try {
+      comp = await totalCompRepaid(address);
+      aave = await totalAaveRepaid(address);
+    } catch (err) {
+      reject(err);
+    }
+
+    resolve({
+      total_repaid: comp.total_repaid + aave.total_repaid,
+      positions: comp.positions.concat(aave.positions),
+    });
+  });
+}
+
+// this.getTotalRepaymentHistory("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });

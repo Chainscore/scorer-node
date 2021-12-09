@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
 const { getScore } = require("../controllers/score");
 
 router.get('/score', (req, res) => {
-  getScore(req.body.address)
+  getScore('0x'+req.body.address)
   .then((resp) => {
     console.log(resp);
     res.send({...resp});

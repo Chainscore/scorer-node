@@ -106,6 +106,7 @@ exports.queryCompSubgraph = (account) => {
         let total_borrowed = 0;
         let assetPrice = 0;
         let positions = []
+        if (resp.borrowEvents) {
         for (let i = 0; i < resp.borrowEvents.length; i++) {
           positions.push(resp.borrowEvents[i]);
 
@@ -116,6 +117,7 @@ exports.queryCompSubgraph = (account) => {
           total_borrowed +=
             ((resp.borrowEvents[i].amount) * (assetPrice.items[0].quote_rate)/** Price of asset */);
         }
+      }
         resolve({total_borrowed, positions});
       })
       .catch((err) => {
@@ -138,7 +140,7 @@ exports.totalCompRepaid = (address) => {
         let assetPrice = 0;
 
         let positions = [];
-
+        if(resp.repayEvents){
         for (let i = 0; i < resp.repayEvents.length; i++) {
           positions.push(resp.repayEvents[i]);
 
@@ -150,6 +152,7 @@ exports.totalCompRepaid = (address) => {
             ((resp.repayEvents[i].amount) * (assetPrice).items[0].quote_rate)/** Price of asset */;
 
         }
+      }
         resolve({total_repaid, positions});
       })
       .catch((err) => {

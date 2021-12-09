@@ -41,7 +41,7 @@ exports.getScore = async (account) => {
      */
     let normalized_value = await getSpotPrice("ETH");
     let eth_price = normalized_value.items[0].quote_rate;
-    let value_score = log(total_value+1, eth_price);
+    let value_score = log(total_value + 1, eth_price);
     value_score = Math.abs(value_score.toFixed(16));
     console.log(`Value Score: ${value_score}`);
 
@@ -50,7 +50,7 @@ exports.getScore = async (account) => {
      * total_supplied UP ==>> score UP
      */
     let supply_score = (total_supplied)/Math.abs((total_value) - (total_supplied)) || 0;
-    supply_score = (log(supply_score, 100)).toFixed(16)
+    supply_score = (log(supply_score + 1, 100)).toFixed(16)
     console.log(`Supply Score: ${supply_score}`);
 
     /**
@@ -58,7 +58,7 @@ exports.getScore = async (account) => {
      * total_borrow_history UP && 
      */
     let repayment_score = total_repaid_history || 0;
-    repayment_score = log(total_repaid_history, eth_price);
+    repayment_score = log(total_repaid_history + 1, eth_price);
     repayment_score = Math.abs(repayment_score.toFixed(16));
     console.log(`Repayment Score: ${repayment_score}`);
 
@@ -70,7 +70,7 @@ exports.getScore = async (account) => {
      * (total_borrowed)*(total_repaid)/()
      */
     let debt_score = (total_borrowed_history)/Math.abs((total_borrowed_history) - (total_repaid_history)) || 0;
-    debt_score = (log(debt_score, 100)).toFixed(16);
+    debt_score = (log(debt_score + 1, 100)).toFixed(16);
     console.log(`Debt Score: ${debt_score}`);
 
     let score = 0.3*(value_score) + 0.3*(supply_score) + 0.2*(debt_score) + 0.2*(repayment_score);

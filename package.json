@@ -2,7 +2,7 @@
   "name": "scorer",
   "version": "0.0.0",
   "private": true,
-  "main": "dist/index.js",
+  "main": "src/app.js",
   "scripts": {
     "start": "pm2 start src/bin/www",
     "stop": "pm2 stop www",
@@ -25,6 +25,7 @@
     "nodemon": "^2.0.15",
     "pm2": "^5.1.2",
     "pug": "2.0.0-beta11",
+    "react": "^17.0.2",
     "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.1.6",
     "urql": "^2.0.5",

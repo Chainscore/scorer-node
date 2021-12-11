@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { errorExchange } = require("urql");
 require("dotenv").config();
 
 exports.getPrice = (token_address) => {
@@ -10,7 +11,7 @@ exports.getPrice = (token_address) => {
           params: {
             format: "JSON",
             "quote-currency": "USD",
-            key: process.env.COVALENT_API_KEY,
+            key: process.env.COVALENT_API_KEY_3,
             nft: true,
           },
         }
@@ -20,7 +21,7 @@ exports.getPrice = (token_address) => {
       })
       .catch((err) => {
         console.log("Error: ", err);
-        reject(err.response.data.error_message);
+        reject(err);
       });
   });
 };
@@ -37,7 +38,7 @@ exports.getHistoricalPrice = (token_address, start, end) => {
             to: end,
             format: "JSON",
             "quote-currency": "USD",
-            key: process.env.COVALENT_API_KEY,
+            key: process.env.COVALENT_API_KEY_3,
             nft: true,
           },
         }
@@ -47,7 +48,7 @@ exports.getHistoricalPrice = (token_address, start, end) => {
       })
       .catch((err) => {
         console.log("Error: ", err);
-        reject(err.response.data.error_message);
+        reject(err);
       });
   });
 };
@@ -60,7 +61,7 @@ exports.getSpotPrice = (ticker) => {
           "quote-currency": "USD",
           format: "JSON",
           tickers: ticker,
-          key: process.env.COVALENT_API_KEY,
+          key: process.env.COVALENT_API_KEY_3,
         },
       })
       .then((resp) => {
@@ -68,15 +69,17 @@ exports.getSpotPrice = (ticker) => {
       })
       .catch((err) => {
         console.log("Error: ", err);
-        reject(err.response.data.error_message);
+        reject(errorExchange);
       });
   });
 };
+
 // this.getPrice('0xee06a81a695750e71a662b51066f2c74cf4478a0')
-// this.getHistoricalPrice('0xee06a81a695750e71a662b51066f2c74cf4478a0', "2021-01-10", "2021-01-20")
 // .then(resp => {
-//     console.log(resp);
-//   })
+//   console.log(resp.prices[0].price);
+// })
+
+// this.getHistoricalPrice('0xee06a81a695750e71a662b51066f2c74cf4478a0', "2021-01-10", "2021-01-20")
 
 // this.getSpotPrice("ETH").then((resp) => {
 //   console.log(resp.items[0].quote_rate);

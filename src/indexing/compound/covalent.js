@@ -31,15 +31,19 @@ exports.getCompBalances = (address) => {
         params: {
           "format": "JSON",
           "quote-currency": "USD",
-          "key": process.env.COVALENT_API_KEY,
+          "key": process.env.COVALENT_API_KEY_2,
         },
-      })
+      },
+      {
+        timeout: 20000 // 10sec timeout
+      }
+      )
       .then((resp) => {
         resolve(resp.data.data.compound.balances);
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data.error_message);
+        reject(err);
       });
   });
 };
@@ -67,7 +71,7 @@ exports.getCompSupplyPosition = (address) => {
           })
           .catch((err) => {
             console.log(err);
-            reject(err.response.data);
+            reject(err);
           });
       });
 }
@@ -96,7 +100,7 @@ exports.getCompBorrowPosition = (address) => {
           })
           .catch((err) => {
             console.log(err);
-            reject(err.response.data);
+            reject(err);
           });
       });
 }

@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { errors } = require("ethers");
 require("dotenv").config();
 
 
@@ -11,8 +12,11 @@ exports.getAaveBalances = (address) => {
           params: {
             format: "JSON",
             "quote-currency": "USD",
-            key: process.env.COVALENT_API_KEY,
+            key: process.env.COVALENT_API_KEY_1,
           },
+        },
+        {
+          timeout: 20000 // 10sec timeout
         }
       )
       .then((resp) => {
@@ -20,7 +24,7 @@ exports.getAaveBalances = (address) => {
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data.error_message);
+        reject(err);
       });
   });
 };
@@ -40,7 +44,7 @@ exports.getAaveSupplyPosition = (address) => {
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data);
+        reject(err);
       });
   });
 };
@@ -60,7 +64,7 @@ exports.getAaveBorrowPosition = (address) => {
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data);
+        reject(errors);
       });
   });
 };

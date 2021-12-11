@@ -99,26 +99,28 @@ exports.queryCompSubgraph = (account) => {
  * @param {*} address 
  * @returns uint debt amount
  */
- exports.totalCompDebt = (address) => {
+exports.totalCompDebt = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
         let total_borrowed = 0;
         let assetPrice = 0;
         let positions = []
-        if (resp.borrowEvents) {
-        for (let i = 0; i < resp.borrowEvents.length; i++) {
-          positions.push(resp.borrowEvents[i]);
+        if (resp) {
+          if (resp.borrowEvents) {
+            for (let i = 0; i < resp.borrowEvents.length; i++) {
+              positions.push(resp.borrowEvents[i]);
 
-          assetPrice = await getSpotPrice(resp.borrowEvents[i].underlyingSymbol);
+              assetPrice = await getSpotPrice(resp.borrowEvents[i].underlyingSymbol);
 
-          // console.log((resp.borrowEvents[i].amount), resp.borrowEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
+              // console.log((resp.borrowEvents[i].amount), resp.borrowEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
 
-          total_borrowed +=
-            ((resp.borrowEvents[i].amount) * (assetPrice.items[0].quote_rate)/** Price of asset */);
+              total_borrowed +=
+                ((resp.borrowEvents[i].amount) * (assetPrice.items[0].quote_rate)/** Price of asset */);
+            }
+          }
         }
-      }
-        resolve({total_borrowed, positions});
+        resolve({ total_borrowed, positions });
       })
       .catch((err) => {
         console.log(err);
@@ -140,20 +142,23 @@ exports.totalCompRepaid = (address) => {
         let assetPrice = 0;
 
         let positions = [];
-        if(resp.repayEvents){
-        for (let i = 0; i < resp.repayEvents.length; i++) {
-          positions.push(resp.repayEvents[i]);
+        if (resp) {
 
-          assetPrice = await getSpotPrice(resp.repayEvents[i].underlyingSymbol)
-          
-          // console.log((resp.repayEvents[i].amount), resp.repayEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
+        if (resp.repayEvents) {
+          for (let i = 0; i < resp.repayEvents.length; i++) {
+            positions.push(resp.repayEvents[i]);
 
-          total_repaid +=
-            ((resp.repayEvents[i].amount) * (assetPrice).items[0].quote_rate)/** Price of asset */;
+            assetPrice = await getSpotPrice(resp.repayEvents[i].underlyingSymbol)
 
+            // console.log((resp.repayEvents[i].amount), resp.repayEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
+
+            total_repaid +=
+              ((resp.repayEvents[i].amount) * (assetPrice).items[0].quote_rate)/** Price of asset */;
+
+          }
         }
       }
-        resolve({total_repaid, positions});
+        resolve({ total_repaid, positions });
       })
       .catch((err) => {
         console.log(err);

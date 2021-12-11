@@ -8,17 +8,21 @@ exports.getFTBalances = (address) => {
         params: {
           format: "JSON",
           "quote-currency": "USD",
-          key: process.env.COVALENT_API_KEY,
+          key: process.env.COVALENT_API_KEY_3,
           nft: false,
           "no-nft-fetch": false,
         },
-      })
+      },
+      {
+        timeout: 20000
+      }
+      )
       .then((resp) => {
         resolve(resp.data.data);
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data.error_message);
+        reject(err);
       });
   });
 };
@@ -30,17 +34,21 @@ exports.getAllBalances = (address) => {
         params: {
           format: "JSON",
           "quote-currency": "USD",
-          key: process.env.COVALENT_API_KEY,
+          key: process.env.COVALENT_API_KEY_3,
           nft: true,
           "no-nft-fetch": false,
         },
-      })
+      },
+      {
+        timeout: 20000
+      }
+      )
       .then((resp) => {
         resolve(resp.data.data);
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data.error_message);
+        reject(err);
       });
   });
 };
@@ -59,7 +67,7 @@ exports.getFTValuation = (address) => {
     })
     .catch((err) => {
         console.log(err);
-        reject(err.response.data.error_message)
+        reject(err)
     });
   })
 };
@@ -80,7 +88,7 @@ exports.getTotalValuation = (address) => {
     })
     .catch((err) => {
         console.log(err);
-        reject(err.response)
+        reject(err)
     });
   })
 };

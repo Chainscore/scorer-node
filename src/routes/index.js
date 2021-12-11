@@ -18,7 +18,6 @@ const { getScore } = require("../controllers/score");
 router.get('/score', (req, res) => {
   getScore('0x'+req.body.address)
   .then((resp) => {
-    console.log(resp);
     res.send({...resp});
   })
   .catch(err => {

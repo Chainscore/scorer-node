@@ -1,7 +1,17 @@
-import axios from 'axios';
-import dotenv from 'dotenv'
-dotenv.config();
+const axios = require('axios');
 
-function request(addrees: string) {
-    
+exports.querySubgraph = (url, query, variables) => {
+    return axios
+        .post(
+            url,
+            {
+                query,
+                variables
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        )
 }

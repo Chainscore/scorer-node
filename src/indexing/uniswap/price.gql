@@ -1,0 +1,13 @@
+{
+  tokenHourDatas(orderBy: periodStartUnix, orderDirection: desc,
+    where:{
+    token: "0xdac17f958d2ee523a2206206994597c13d831ec7", 
+    periodStartUnix_gt: 1639240974
+  }){
+    token{
+      symbol
+    }
+    periodStartUnix
+    priceUSD
+  }
+}

@@ -1,6 +1,27 @@
-const { querySimpliFiAaveSubgraph } = require("./query");
+require('dotenv').config();
+const { querySubgraph } = require("../../../clients/graph");
+
+const { readFileSync } = require('fs')
+const query = readFileSync('/Users/prasad/projects/chainscore/scorer/src/indexing/aave/SimpleFi/query.graphql').toString('utf-8')
 
 const { getPrice } = require("../../prices-endpoint");
+
+function querySimpliFiAaveSubgraph(account) {
+  return new Promise((resolve, reject) => {
+    querySubgraph(process.env.SIMPLEFI_AAVE, query, {
+      id: account,
+      user: account
+    })
+      .then((resp) => {
+        if (resp.data.data) resolve(resp.data.data);
+        else resolve({});
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err.response);
+      });
+  })
+}
 
 /**
  * Get total repaid amount
@@ -48,8 +69,8 @@ exports.totalSimpleFiAaveDebt = (address) => {
             let token;
             for (let i = 0; i < resp.borrows.length; i++) {
               positions.push(resp.borrows[i]);
-              token = await getPrice(resp.borrows[i].reserve);
-              total_borrowed += (resp.borrows[i].amount / token.contract_decimals) * token.prices[0].price;
+              // token = await getPrice(resp.borrows[i].reserve);
+              // total_borrowed += (resp.borrows[i].amount / token.contract_decimals) * token.prices[0].price;
             }
           }
         }
@@ -78,12 +99,10 @@ exports.totalSimpleFiAaveDeposits = (address) => {
         if (resp) {
           if (resp.deposits) {
             let token;
-            let tasks = 0;
             for (let i = 0; i < resp.deposits.length; i++) {
               positions.push(resp.deposits[i]);
-              token = await getPrice(resp.deposits[i].reserve);
-              total_deposits += (resp.deposits[i].amount / 10**token.contract_decimals) * token.prices[0].price;
-              console.log(total_deposits);
+              // token = await getPrice(resp.deposits[i].reserve);
+              // total_deposits += (resp.deposits[i].amount / 10 ** token.contract_decimals) * token.prices[0].price;
             }
           }
         }
@@ -96,7 +115,7 @@ exports.totalSimpleFiAaveDeposits = (address) => {
   });
 };
 
-this.totalSimpleFiAaveDeposits("0x21b9c3cc0a80ef376b27bdff23b252367404ae56")
+this.totalSimpleFiAaveDebt("0x21b9c3cc0a80ef376b27bdff23b252367404ae56")
   .then(resp => {
     console.log(resp);
   })

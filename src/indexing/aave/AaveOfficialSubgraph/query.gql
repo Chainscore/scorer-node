@@ -1,0 +1,122 @@
+query user($id: ID!) {
+  users(where: { id: $id }) {
+    unclaimedRewards
+    lifetimeRewards
+    reserves {
+      scaledATokenBalance
+      currentATokenBalance
+      scaledVariableDebt
+      currentVariableDebt
+      principalStableDebt
+      currentStableDebt
+      currentTotalDebt
+      aTokenBalanceHistory {
+        timestamp
+        scaledATokenBalance
+        currentATokenBalance
+      }
+      vTokenBalanceHistory {
+        timestamp
+        scaledVariableDebt
+        currentVariableDebt
+      }
+      sTokenBalanceHistory {
+        timestamp
+        principalStableDebt
+        currentStableDebt
+      }
+      usageAsCollateralHistory {
+        fromState
+        toState
+        timestamp
+      }
+      reserve {
+        id
+        underlyingAsset
+        symbol
+        name
+        decimals
+        isActive
+        isFrozen
+        price {
+          priceInEth
+          priceHistory {
+            price
+            timestamp
+          }
+          lastUpdateTimestamp
+        }
+        utilizationRate
+        totalLiquidity
+        totalLiquidityAsCollateral
+        availableLiquidity
+      }
+      depositHistory {
+        user {
+          id
+        }
+        amount
+        onBehalfOf {
+          id
+        }
+        timestamp
+      }
+      redeemUnderlyingHistory {
+        user {
+          id
+        }
+        onBehalfOf {
+          id
+        }
+        amount
+        timestamp
+      }
+      repayHistory {
+        user {
+          id
+        }
+        amount
+        onBehalfOf {
+          id
+        }
+        timestamp
+      }
+      borrowHistory {
+        user {
+          id
+        }
+        onBehalfOf {
+          id
+        }
+        amount
+        borrowRate
+        borrowRateMode
+        timestamp
+      }
+      swapHistory {
+        user {
+          id
+        }
+        borrowRateModeFrom
+        borrowRateModeTo
+        stableBorrowRate
+        variableBorrowRate
+        timestamp
+      }
+      rebalanceStableBorrowRateHistory {
+        user {
+          id
+        }
+        borrowRateFrom
+        borrowRateTo
+        timestamp
+      }
+      liquidationCallHistory {
+        collateralAmount
+        principalAmount
+        liquidator
+        timestamp
+      }
+    }
+  }
+}

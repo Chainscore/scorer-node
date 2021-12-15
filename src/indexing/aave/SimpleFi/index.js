@@ -1,16 +1,20 @@
-require('dotenv').config();
+require("dotenv").config();
 const { querySubgraph } = require("../../../clients/graph");
 
-const { readFileSync } = require('fs')
-const query = readFileSync('/Users/prasad/projects/chainscore/scorer/src/indexing/aave/SimpleFi/query.graphql').toString('utf-8')
+const { readFileSync } = require("fs");
+const query = readFileSync(
+  "/home/prasad/Desktop/chainscore/scorer-node/src/indexing/aave/SimpleFi/query.graphql"
+).toString("utf-8");
 
-const { getPrice } = require("../../prices-endpoint");
+// const { getPrice } = require("../../prices-endpoint");
+const { getOrAddToken } = require("../../../controllers/tokens");
 
 function querySimpliFiAaveSubgraph(account) {
   return new Promise((resolve, reject) => {
+    account = account.toLowerCase();
     querySubgraph(process.env.SIMPLEFI_AAVE, query, {
       id: account,
-      user: account
+      user: account,
     })
       .then((resp) => {
         if (resp.data.data) resolve(resp.data.data);
@@ -20,7 +24,7 @@ function querySimpliFiAaveSubgraph(account) {
         console.log(err);
         reject(err.response);
       });
-  })
+  });
 }
 
 /**
@@ -32,19 +36,7 @@ exports.totalSimpleFiAaveRepaid = (address) => {
   return new Promise((resolve, reject) => {
     querySimpliFiAaveSubgraph(address)
       .then(async (resp) => {
-        let total_repaid = 0;
-        let positions = [];
-        if (resp) {
-          if (resp.repays) {
-            let token;
-            for (let i = 0; i < resp.repays.length; i++) {
-              positions.push(resp.repays[i]);
-              token = await getPrice(resp.repays[i].reserve);
-              total_repaid += (resp.repays[i].amount / token.contract_decimals) * token.prices[0].price;
-            }
-          }
-        }
-        resolve({ total_repaid, positions });
+        resolve(await calculateRepaid(resp));
       })
       .catch((err) => {
         console.log(err);
@@ -52,6 +44,22 @@ exports.totalSimpleFiAaveRepaid = (address) => {
       });
   });
 };
+
+async function calculateRepaid(resp) {
+  let total_repaid = 0;
+  let positions = [];
+  if (resp) {
+    if (resp.repays) {
+      let token;
+      for (let i = 0; i < resp.repays.length; i++) {
+        positions.push(resp.repays[i]);
+        token = await getOrAddToken(resp.repays[i].reserve);
+        total_repaid += toUSD(resp.repays[i].amount, token);
+      }
+    }
+  }
+  return { total_repaid, positions };
+}
 
 /**
  * Get total debt
@@ -62,26 +70,30 @@ exports.totalSimpleFiAaveDebt = (address) => {
   return new Promise((resolve, reject) => {
     querySimpliFiAaveSubgraph(address)
       .then(async (resp) => {
-        let total_borrowed = 0;
-        let positions = [];
-        if (resp) {
-          if (resp.borrows) {
-            let token;
-            for (let i = 0; i < resp.borrows.length; i++) {
-              positions.push(resp.borrows[i]);
-              // token = await getPrice(resp.borrows[i].reserve);
-              // total_borrowed += (resp.borrows[i].amount / token.contract_decimals) * token.prices[0].price;
-            }
-          }
-        }
-        resolve({ total_borrowed, positions });
+        resolve(await calculateDebt(resp));
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data);
+        reject(err);
       });
   });
 };
+
+async function calculateDebt(resp) {
+  let total_borrowed = 0;
+  let positions = [];
+  if (resp) {
+    if (resp.borrows) {
+      let token;
+      for (let i = 0; i < resp.borrows.length; i++) {
+        positions.push(resp.borrows[i]);
+        token = await getOrAddToken(resp.borrows[i].reserve);
+        total_borrowed += toUSD(resp.borrows[i].amount, token);
+      }
+    }
+  }
+  return { total_borrowed, positions };
+}
 
 /**
  * Get total deposit supplied
@@ -92,21 +104,7 @@ exports.totalSimpleFiAaveDeposits = (address) => {
   return new Promise((resolve, reject) => {
     querySimpliFiAaveSubgraph(address)
       .then(async (resp) => {
-
-        let total_deposits = 0;
-        let positions = [];
-
-        if (resp) {
-          if (resp.deposits) {
-            let token;
-            for (let i = 0; i < resp.deposits.length; i++) {
-              positions.push(resp.deposits[i]);
-              // token = await getPrice(resp.deposits[i].reserve);
-              // total_deposits += (resp.deposits[i].amount / 10 ** token.contract_decimals) * token.prices[0].price;
-            }
-          }
-        }
-        resolve({ total_deposits, positions });
+        resolve(await calculateDeposits(resp));
       })
       .catch((err) => {
         console.log(err);
@@ -115,7 +113,82 @@ exports.totalSimpleFiAaveDeposits = (address) => {
   });
 };
 
-this.totalSimpleFiAaveDebt("0x21b9c3cc0a80ef376b27bdff23b252367404ae56")
-  .then(resp => {
-    console.log(resp);
-  })
+async function calculateDeposits(resp) {
+  let total_deposits = 0;
+  let positions = [];
+
+  if (resp) {
+    if (resp.deposits) {
+      let token;
+      for (let i = 0; i < resp.deposits.length; i++) {
+        positions.push(resp.deposits[i]);
+        token = await getOrAddToken(resp.deposits[i].reserve);
+        total_deposits += toUSD(resp.deposits[i].amount, token);
+      }
+    }
+  }
+  return { total_deposits, positions };
+}
+
+exports.getUserPosition = (address) => {
+  return new Promise(async (resolve, reject) => {
+    querySimpliFiAaveSubgraph(address).then(async (resp) => {
+      let positions = resp.accounts[0].positions;
+      let total_rewards = 0;
+      let deposit_position = 0;
+      let borrow_position = 0;
+      let input, input_balance = 0, output, reward;
+      let token;
+      for (let i in positions) {
+        if (positions[i].rewardTokenBalances[0]) {
+          reward = positions[i].rewardTokenBalances[0].split("|");
+          
+          if (parseInt(reward[2]) > 0) {
+            token = await getOrAddToken(reward[0]);
+            total_rewards += toUSD(reward[2], token);
+          }
+        }
+        if (positions[i].inputTokenBalances[0]) {
+          input = positions[i].inputTokenBalances[0].split("|");
+          console.log(input)
+
+          if (parseInt(input[2]) > 0) {
+            token = await getOrAddToken(input[0]);
+            input_balance += toUSD(input[2], token);
+          }
+        }
+      }
+      console.log(total_rewards, input_balance);
+
+      let deposits = await calculateDeposits(resp);
+      let repaid = await calculateRepaid(resp);
+      let borrowed = await calculateDebt(resp);
+
+      resolve({
+        account: resp.accounts[0].id,
+
+        total_supplied: deposits.total_deposits,
+        deposit_history: deposits.positions,
+        deposit_position,
+
+        total_repaid: repaid.total_repaid,
+        repaid_history: repaid.positions,
+
+        total_borrowed: borrowed.total_borrowed,
+        borrow_history: borrowed.positions,
+        borrow_position,
+      });
+    });
+  });
+};
+
+function toUSD(amount, token) {
+  return (amount / 10**token.decimals) * token.price;
+}
+
+this.getUserPosition("0x94b685916905266474da31c195c9498e85f4df66").then(
+  (resp) => {
+    // console.log(resp);
+    return;
+  }
+);

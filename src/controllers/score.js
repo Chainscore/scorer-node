@@ -114,13 +114,13 @@ exports.getScore = async (account) => {
   }
 };
 
-// this.getScore("0x933F12622c761B1bF5a4Ca444000F1d9C5D09e49")
-//   .then((resp) => {
-//     console.log(resp);
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
+this.getScore("0x933F12622c761B1bF5a4Ca444000F1d9C5D09e49")
+  .then((resp) => {
+    console.log(resp);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 // this.getScore("0x1D052CC8C480B98Cc9BDb24e5F0586d47F9bd4CA")
 //   .then((resp) => {

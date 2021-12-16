@@ -41,7 +41,7 @@ exports.queryCompSubgraph = (account) => {
  * @param {*} address
  * @returns uint debt amount
  */
-exports.totalCompDebt = (address) => {
+exports.totalDebt = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
@@ -74,7 +74,6 @@ function calculateDebt(tokens) {
   return { total_borrowed, current_borrowed, positions };
 }
 
-
 // ==================== REPAID ==================== //
 
 /**
@@ -82,7 +81,7 @@ function calculateDebt(tokens) {
  * @param {*} address
  * @returns uint total repaid
  */
- exports.totalCompRepaid = (address) => {
+exports.totalRepaid = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
@@ -110,7 +109,6 @@ function calculateRepaid(tokens) {
 
   return { total_repaid, positions };
 }
-
 
 // ==================== SUPPLY ==================== //
 
@@ -188,28 +186,46 @@ function calculateRedeemed(tokens) {
   return { total_redeemed, positions };
 }
 
-
 // ==================== USER POSITION ==================== //
 
 exports.getUserPosition = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        let repaid = calculateRepaid(resp.accounts[0].tokens);
-        let borrowed = calculateDebt(resp.accounts[0].tokens);
-        let supplied = calculateSupplied(resp.accounts[0].tokens);
-        let redeemed = calculateRedeemed(resp.accounts[0].tokens);
+        let positions = [],
+          total_borrowed = 0,
+          current_borrowed = 0,
+          total_repaid = 0,
+          total_supplied = 0,
+          current_supplied = 0,
+          total_redeemed = 0;
 
+        if (resp.accounts.length > 0) {
+          let repaid = calculateRepaid(resp.accounts[0].tokens);
+          let borrowed = calculateDebt(resp.accounts[0].tokens);
+          let supplied = calculateSupplied(resp.accounts[0].tokens);
+          let redeemed = calculateRedeemed(resp.accounts[0].tokens);
+
+          total_borrowed = borrowed.total_borrowed;
+          current_borrowed = borrowed.current_borrowed;
+          total_repaid = repaid.total_repaid;
+
+          total_supplied = supplied.total_supplied;
+          current_supplied = supplied.current_supplied;
+
+          total_redeemed = redeemed.total_redeemed;
+          positions = resp.accounts[0].tokens;
+        }
         resolve({
-          total_borrowed: borrowed.total_borrowed, 
-          current_borrowed: borrowed.current_borrowed,
-          total_repaid: repaid.total_repaid, 
+          total_borrowed,
+          current_borrowed,
+          total_repaid,
 
-          total_supplied: supplied.total_supplied,
-          current_supplied: supplied.current_supplied,
+          total_supplied,
+          current_supplied,
 
-          total_redeemed: redeemed.total_redeemed,
-          positions: resp.accounts[0].tokens
+          total_redeemed,
+          positions,
         });
       })
       .catch((err) => {
@@ -219,10 +235,10 @@ exports.getUserPosition = (address) => {
   });
 };
 
-this.getUserPosition("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
-  .then((resp) => {
-    console.log(resp);
-  })
-  .catch((err) => {
-    console.log(err.data);
-  });
+// this.getUserPosition("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+//   .then((resp) => {
+//     console.log(resp);
+//   })
+//   .catch((err) => {
+//     console.log(err.data);
+//   });

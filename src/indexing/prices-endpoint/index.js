@@ -27,7 +27,7 @@ exports.getCovalentPrice = (token_address) => {
   });
 };
 
-exports.getPrice = (token_address) => {
+exports.getCoingeckoPrice = (token_address) => {
   return new Promise((resolve, reject) => {
     axios
       .get(
@@ -45,7 +45,21 @@ exports.getPrice = (token_address) => {
   });
 };
 
-exports.getHistoricalPrice = (token_address, start, end) => {
+exports.getCoingeckoSpotPrice = (id, against = "usd") => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=${against}`)
+      .then((resp) => {
+        resolve(resp.data);
+      })
+      .catch((err) => {
+        console.log("Error: ", err);
+        reject(errorExchange);
+      });
+  });
+};
+
+exports.getCovalentHistoricalPrice = (token_address, start, end) => {
   return new Promise((resolve, reject) => {
     axios
       .get(
@@ -72,7 +86,7 @@ exports.getHistoricalPrice = (token_address, start, end) => {
   });
 };
 
-exports.getSpotPrice = (ticker) => {
+exports.getCovalentSpotPrice = (ticker) => {
   return new Promise((resolve, reject) => {
     axios
       .get(`https://api.covalenthq.com/v1/pricing/tickers/`, {

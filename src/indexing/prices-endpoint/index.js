@@ -1,8 +1,9 @@
 const axios = require("axios");
+const { token } = require("morgan");
 const { errorExchange } = require("urql");
 require("dotenv").config();
 
-exports.getPrice = (token_address) => {
+exports.getCovalentPrice = (token_address) => {
   return new Promise((resolve, reject) => {
     axios
       .get(
@@ -26,7 +27,39 @@ exports.getPrice = (token_address) => {
   });
 };
 
-exports.getHistoricalPrice = (token_address, start, end) => {
+exports.getCoingeckoPrice = (token_address) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(
+        `https://api.coingecko.com/api/v3/coins/ethereum/contract/${token_address}`
+      )
+      .then((resp) => {
+        console.log(resp.data.market_data.current_price.usd);
+        // resolve(resp.data.market_data.current_price.usd);
+        this.getPrice(token_address);
+      })
+      .catch((err) => {
+        // console.log("Error: ", err);
+        reject(err);
+      });
+  });
+};
+
+exports.getCoingeckoSpotPrice = (id, against = "usd") => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=${against}`)
+      .then((resp) => {
+        resolve(resp.data);
+      })
+      .catch((err) => {
+        console.log("Error: ", err);
+        reject(errorExchange);
+      });
+  });
+};
+
+exports.getCovalentHistoricalPrice = (token_address, start, end) => {
   return new Promise((resolve, reject) => {
     axios
       .get(
@@ -53,7 +86,7 @@ exports.getHistoricalPrice = (token_address, start, end) => {
   });
 };
 
-exports.getSpotPrice = (ticker) => {
+exports.getCovalentSpotPrice = (ticker) => {
   return new Promise((resolve, reject) => {
     axios
       .get(`https://api.covalenthq.com/v1/pricing/tickers/`, {
@@ -74,9 +107,9 @@ exports.getSpotPrice = (ticker) => {
   });
 };
 
-// this.getPrice('0xee06a81a695750e71a662b51066f2c74cf4478a0')
+// this.getPrice("0xee06a81a695750e71a662b51066f2c74cf4478a0")
 // .then(resp => {
-//   console.log(resp.prices[0].price);
+//   console.log(resp)
 // })
 
 // this.getHistoricalPrice('0xee06a81a695750e71a662b51066f2c74cf4478a0', "2021-01-10", "2021-01-20")

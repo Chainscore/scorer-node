@@ -1,7 +1,12 @@
-const axios = require("axios");
 require("dotenv").config();
+const { querySubgraph } = require("../../clients/graph");
 
-const { getSpotPrice } = require('../prices-endpoint');
+const { readFileSync } = require("fs");
+const query = readFileSync(
+  process.cwd() + "/src/indexing/compound/query.gql"
+).toString("utf-8");
+
+const { getSpotPrice } = require("../prices-endpoint");
 
 // {
 //   accounts: [],
@@ -13,114 +18,34 @@ const { getSpotPrice } = require('../prices-endpoint');
 // }
 exports.queryCompSubgraph = (account) => {
   return new Promise((resolve, reject) => {
-    axios
-      .post(
-        process.env.COMP_V2_HOSTED,
-        {
-          query: `query accounts($id: ID!, $address: Bytes!){
-              accounts(where: {id: $id}){
-                tokens{
-                  symbol
-                  cTokenBalance
-                  market{
-                    underlyingPriceUSD
-                  }
-                  totalUnderlyingBorrowed
-                  totalUnderlyingRepaid
-                  totalUnderlyingSupplied
-                  totalUnderlyingRedeemed
-                  lifetimeBorrowInterestAccrued
-                }
-                health
-                countLiquidated
-                countLiquidator
-                hasBorrowed
-                totalBorrowValueInEth
-                totalCollateralValueInEth
-              }
-              repayEvents(where: {borrower: $address}){
-                amount
-                accountBorrows
-                blockTime
-                underlyingSymbol
-              }
-              borrowEvents(where: {borrower: $address}){
-                amount
-                accountBorrows
-                blockTime
-                underlyingSymbol
-              }
-            
-              liquidationEvents(where: {from: $address}){
-                amount
-                blockTime
-                underlyingSymbol
-                underlyingRepayAmount
-              }
-            
-              redeemEvents(where: {from: $address}){
-                amount
-                blockTime
-                cTokenSymbol
-                underlyingAmount
-              }
-            
-              mintEvents(where: {from: $address}){
-                amount
-                blockTime
-                cTokenSymbol
-                underlyingAmount
-              }
-          }`,
-          variables: {
-            id: account,
-            address: account,
-          },
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
+    account = account.toLowerCase();
+    querySubgraph(process.env.COMP_V2_HOSTED, query, {
+      id: account,
+      user: account,
+    })
       .then((resp) => {
-        resolve(resp.data.data);
+        if (resp.data.data) resolve(resp.data.data);
+        else resolve({});
       })
       .catch((err) => {
         console.log(err);
-        reject(err.response.data.errors);
+        reject(err.response);
       });
   });
 };
 
+// ==================== DEBT ==================== //
 
 /**
  * Get total debt
- * @param {*} address 
+ * @param {*} address
  * @returns uint debt amount
  */
-exports.totalCompDebt = (address) => {
+exports.totalDebt = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        let total_borrowed = 0;
-        let assetPrice = 0;
-        let positions = []
-        if (resp) {
-          if (resp.borrowEvents) {
-            for (let i = 0; i < resp.borrowEvents.length; i++) {
-              positions.push(resp.borrowEvents[i]);
-
-              assetPrice = await getSpotPrice(resp.borrowEvents[i].underlyingSymbol);
-
-              // console.log((resp.borrowEvents[i].amount), resp.borrowEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
-
-              total_borrowed +=
-                ((resp.borrowEvents[i].amount) * (assetPrice.items[0].quote_rate)/** Price of asset */);
-            }
-          }
-        }
-        resolve({ total_borrowed, positions });
+        resolve(calculateDebt(resp.accounts[0].tokens));
       })
       .catch((err) => {
         console.log(err);
@@ -128,37 +53,75 @@ exports.totalCompDebt = (address) => {
       });
   });
 };
+
+function calculateDebt(tokens) {
+  let total_borrowed = 0,
+    current_borrowed = 0,
+    positions = [];
+
+  for (let i in tokens) {
+    if (tokens[i].totalUnderlyingBorrowed > 0) {
+      total_borrowed += parseInt(
+        tokens[i].totalUnderlyingBorrowed * tokens[i].market.underlyingPriceUSD
+      );
+      current_borrowed += parseInt(
+        tokens[i].borrowBalanceUnderlying * tokens[i].market.underlyingPriceUSD
+      );
+      positions.push(tokens[i]);
+    }
+  }
+
+  return { total_borrowed, current_borrowed, positions };
+}
+
+// ==================== REPAID ==================== //
 
 /**
- * Get total deposit supplied
- * @param {*} address 
- * @returns uint total deposit
+ * Get total amount repaid
+ * @param {*} address
+ * @returns uint total repaid
  */
-exports.totalCompRepaid = (address) => {
+exports.totalRepaid = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        let total_repaid = 0;
-        let assetPrice = 0;
+        resolve(calculateRepaid(resp.accounts[0].tokens));
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err);
+      });
+  });
+};
 
-        let positions = [];
-        if (resp) {
+function calculateRepaid(tokens) {
+  let total_repaid = 0,
+    positions = [];
 
-        if (resp.repayEvents) {
-          for (let i = 0; i < resp.repayEvents.length; i++) {
-            positions.push(resp.repayEvents[i]);
+  for (let i in tokens) {
+    if (tokens[i].totalUnderlyingRepaid > 0) {
+      total_repaid += parseInt(
+        tokens[i].totalUnderlyingRepaid * tokens[i].market.underlyingPriceUSD
+      );
+      positions.push(tokens[i]);
+    }
+  }
 
-            assetPrice = await getSpotPrice(resp.repayEvents[i].underlyingSymbol)
+  return { total_repaid, positions };
+}
 
-            // console.log((resp.repayEvents[i].amount), resp.repayEvents[i].underlyingSymbol, (assetPrice).items[0].quote_rate);
+// ==================== SUPPLY ==================== //
 
-            total_repaid +=
-              ((resp.repayEvents[i].amount) * (assetPrice).items[0].quote_rate)/** Price of asset */;
-
-          }
-        }
-      }
-        resolve({ total_repaid, positions });
+/**
+ * Get total tokens supplied (value in USD)
+ * @param {*} address
+ * @returns uint supplied amount
+ */
+exports.totalSupplied = (address) => {
+  return new Promise((resolve, reject) => {
+    this.queryCompSubgraph(address)
+      .then(async (resp) => {
+        resolve(calculateSupplied(resp.accounts[0].tokens));
       })
       .catch((err) => {
         console.log(err);
@@ -167,27 +130,115 @@ exports.totalCompRepaid = (address) => {
   });
 };
 
+function calculateSupplied(tokens) {
+  let total_supplied = 0,
+    current_supplied = 0,
+    positions = [];
 
-// this.queryCompSubgraph("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+  for (let i in tokens) {
+    if (tokens[i].totalUnderlyingSupplied > 0) {
+      total_supplied += parseInt(
+        tokens[i].totalUnderlyingSupplied * tokens[i].market.underlyingPriceUSD
+      );
+      current_supplied += parseInt(
+        tokens[i].supplyBalanceUnderlying * tokens[i].market.underlyingPriceUSD
+      );
+      positions.push(tokens[i]);
+    }
+  }
+
+  return { total_supplied, current_supplied, positions };
+}
+
+// ==================== REDEEM ==================== //
+
+/**
+ * Get total amount redeemed (in USD)
+ * @param {*} address
+ * @returns uint redeemed amount
+ */
+exports.totalRedeemed = (address) => {
+  return new Promise((resolve, reject) => {
+    this.queryCompSubgraph(address)
+      .then(async (resp) => {
+        resolve(calculateRedeemed(resp.accounts[0].tokens));
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err.response.data);
+      });
+  });
+};
+
+function calculateRedeemed(tokens) {
+  let total_redeemed = 0,
+    positions = [];
+
+  for (let i in tokens) {
+    if (tokens[i].totalUnderlyingRedeemed > 0) {
+      total_redeemed += parseInt(
+        tokens[i].totalUnderlyingRedeemed * tokens[i].market.underlyingPriceUSD
+      );
+      positions.push(tokens[i]);
+    }
+  }
+
+  return { total_redeemed, positions };
+}
+
+// ==================== USER POSITION ==================== //
+
+exports.getUserPosition = (address) => {
+  return new Promise((resolve, reject) => {
+    this.queryCompSubgraph(address)
+      .then(async (resp) => {
+        let positions = [],
+          total_borrowed = 0,
+          current_borrowed = 0,
+          total_repaid = 0,
+          total_supplied = 0,
+          current_supplied = 0,
+          total_redeemed = 0;
+
+        if (resp.accounts.length > 0) {
+          let repaid = calculateRepaid(resp.accounts[0].tokens);
+          let borrowed = calculateDebt(resp.accounts[0].tokens);
+          let supplied = calculateSupplied(resp.accounts[0].tokens);
+          let redeemed = calculateRedeemed(resp.accounts[0].tokens);
+
+          total_borrowed = borrowed.total_borrowed;
+          current_borrowed = borrowed.current_borrowed;
+          total_repaid = repaid.total_repaid;
+
+          total_supplied = supplied.total_supplied;
+          current_supplied = supplied.current_supplied;
+
+          total_redeemed = redeemed.total_redeemed;
+          positions = resp.accounts[0].tokens;
+        }
+        resolve({
+          total_borrowed,
+          current_borrowed,
+          total_repaid,
+
+          total_supplied,
+          current_supplied,
+
+          total_redeemed,
+          positions,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err);
+      });
+  });
+};
+
+// this.getUserPosition("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
 //   .then((resp) => {
 //     console.log(resp);
 //   })
 //   .catch((err) => {
-//     console.log(err);
-//   });
-
-// this.totalCompDebt("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
-//   .then((resp) => {
-//     console.log(resp);
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
-
-// this.totalCompRepaid("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
-//   .then((resp) => {
-//     console.log(resp);
-//   })
-//   .catch((err) => {
-//     console.log(err);
+//     console.log(err.data);
 //   });

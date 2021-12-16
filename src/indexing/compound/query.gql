@@ -1,0 +1,70 @@
+query accounts($id: ID!, $user: Bytes!) {
+  accounts(where: { id: $id }) {
+    tokens {
+      market {
+        name
+        symbol
+        id
+        exchangeRate
+        collateralFactor
+        borrowRate
+        underlyingName
+        underlyingSymbol
+        underlyingPrice
+        underlyingPriceUSD
+        underlyingDecimals
+      }
+      symbol
+      
+      totalUnderlyingSupplied
+      totalUnderlyingRedeemed
+      totalUnderlyingBorrowed
+      totalUnderlyingRepaid
+
+      supplyBalanceUnderlying
+      lifetimeSupplyInterestAccrued
+
+      borrowBalanceUnderlying
+      lifetimeBorrowInterestAccrued
+    }
+    countLiquidated
+    countLiquidator
+    hasBorrowed
+    health
+    totalBorrowValueInEth
+    totalCollateralValueInEth
+  }
+  repayEvents(where: { borrower: $user }) {
+    amount
+    accountBorrows
+    blockTime
+    underlyingSymbol
+  }
+  borrowEvents(where: { borrower: $user }) {
+    amount
+    accountBorrows
+    blockTime
+    underlyingSymbol
+  }
+
+  liquidationEvents(where: { from: $user }) {
+    amount
+    blockTime
+    underlyingSymbol
+    underlyingRepayAmount
+  }
+
+  redeemEvents(where: { from: $user }) {
+    amount
+    blockTime
+    cTokenSymbol
+    underlyingAmount
+  }
+
+  mintEvents(where: { from: $user }) {
+    amount
+    blockTime
+    cTokenSymbol
+    underlyingAmount
+  }
+}

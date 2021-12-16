@@ -13,9 +13,9 @@ exports.getFTBalances = (address) => {
           "no-nft-fetch": false,
         },
       },
-      {
-        timeout: 20000
-      }
+      // {
+      //   timeout: 20000
+      // }
       )
       .then((resp) => {
         resolve(resp.data.data);
@@ -39,9 +39,9 @@ exports.getAllBalances = (address) => {
           "no-nft-fetch": false,
         },
       },
-      {
-        timeout: 20000
-      }
+      // {
+      //   timeout: 20000
+      // }
       )
       .then((resp) => {
         resolve(resp.data.data);

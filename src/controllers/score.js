@@ -52,7 +52,7 @@ exports.getScore = async (account) => {
     let normalized_value = await getCoingeckoSpotPrice("ethereum");
 
     let eth_price = normalized_value.ethereum.usd;
-    let value_score = log(total_value + 1, 4500);
+    let value_score = log(total_value + 1, parseInt(eth_price));
     value_score = Math.abs(value_score.toFixed(16));
     console.log(`Value Score: ${value_score}`);
 
@@ -102,6 +102,7 @@ exports.getScore = async (account) => {
       repayment_score,
     };
   } catch (err) {
+    console.log(err)
     return {
       address: account,
       score: 0,
@@ -113,7 +114,7 @@ exports.getScore = async (account) => {
   }
 };
 
-// this.getScore("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+// this.getScore("0x933F12622c761B1bF5a4Ca444000F1d9C5D09e49")
 //   .then((resp) => {
 //     console.log(resp);
 //   })

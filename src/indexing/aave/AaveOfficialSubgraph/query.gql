@@ -39,6 +39,9 @@ query user($id: ID!) {
         isActive
         isFrozen
         price {
+          oracle{
+            usdPriceEth
+          }
           priceInEth
           priceHistory {
             price

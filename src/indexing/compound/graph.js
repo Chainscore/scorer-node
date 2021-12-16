@@ -45,7 +45,7 @@ exports.totalCompDebt = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        resolve(calculateTotalDebt(resp.accounts[0].tokens));
+        resolve(calculateDebt(resp.accounts[0].tokens));
       })
       .catch((err) => {
         console.log(err);
@@ -54,7 +54,7 @@ exports.totalCompDebt = (address) => {
   });
 };
 
-function calculateTotalDebt(tokens) {
+function calculateDebt(tokens) {
   let total_borrowed = 0,
     current_borrowed = 0,
     positions = [];
@@ -86,7 +86,7 @@ function calculateTotalDebt(tokens) {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        resolve(calculateTotalRepaid(resp.accounts[0].tokens));
+        resolve(calculateRepaid(resp.accounts[0].tokens));
       })
       .catch((err) => {
         console.log(err);
@@ -95,7 +95,7 @@ function calculateTotalDebt(tokens) {
   });
 };
 
-function calculateTotalRepaid(tokens) {
+function calculateRepaid(tokens) {
   let total_repaid = 0,
     positions = [];
 
@@ -119,11 +119,11 @@ function calculateTotalRepaid(tokens) {
  * @param {*} address
  * @returns uint supplied amount
  */
-exports.totalCompSupplied = (address) => {
+exports.totalSupplied = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        resolve(calculateTotalSupplied(resp.accounts[0].tokens));
+        resolve(calculateSupplied(resp.accounts[0].tokens));
       })
       .catch((err) => {
         console.log(err);
@@ -132,7 +132,7 @@ exports.totalCompSupplied = (address) => {
   });
 };
 
-function calculateTotalSupplied(tokens) {
+function calculateSupplied(tokens) {
   let total_supplied = 0,
     current_supplied = 0,
     positions = [];
@@ -159,11 +159,11 @@ function calculateTotalSupplied(tokens) {
  * @param {*} address
  * @returns uint redeemed amount
  */
-exports.totalCompRedeemed = (address) => {
+exports.totalRedeemed = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        resolve(calculateTotalRedeemed(resp.accounts[0].tokens));
+        resolve(calculateRedeemed(resp.accounts[0].tokens));
       })
       .catch((err) => {
         console.log(err);
@@ -172,7 +172,7 @@ exports.totalCompRedeemed = (address) => {
   });
 };
 
-function calculateTotalRedeemed(tokens) {
+function calculateRedeemed(tokens) {
   let total_redeemed = 0,
     positions = [];
 
@@ -195,17 +195,15 @@ exports.getUserPosition = (address) => {
   return new Promise((resolve, reject) => {
     this.queryCompSubgraph(address)
       .then(async (resp) => {
-        let repaid = calculateTotalRepaid(resp.accounts[0].tokens);
-        let borrowed = calculateTotalDebt(resp.accounts[0].tokens);
-        let supplied = calculateTotalSupplied(resp.accounts[0].tokens);
-        let redeemed = calculateTotalRedeemed(resp.accounts[0].tokens);
+        let repaid = calculateRepaid(resp.accounts[0].tokens);
+        let borrowed = calculateDebt(resp.accounts[0].tokens);
+        let supplied = calculateSupplied(resp.accounts[0].tokens);
+        let redeemed = calculateRedeemed(resp.accounts[0].tokens);
 
-        resolve({ 
-          
+        resolve({
           total_borrowed: borrowed.total_borrowed, 
           current_borrowed: borrowed.current_borrowed,
           total_repaid: repaid.total_repaid, 
-
 
           total_supplied: supplied.total_supplied,
           current_supplied: supplied.current_supplied,
@@ -221,10 +219,10 @@ exports.getUserPosition = (address) => {
   });
 };
 
-// this.queryCompSubgraph("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
-//   .then((resp) => {
-//     console.log(resp.accounts[0]);
-//   })
-//   .catch((err) => {
-//     console.log(err.data);
-//   });
+this.getUserPosition("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+  .then((resp) => {
+    console.log(resp);
+  })
+  .catch((err) => {
+    console.log(err.data);
+  });

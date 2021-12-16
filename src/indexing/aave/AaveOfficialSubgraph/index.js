@@ -25,8 +25,11 @@ function queryAaveSubgraph(account) {
   });
 }
 
-function toETH(amount, reserve) {
-  (parseInt(amount) / 10 ** reserve.decimals) * reserve.price.priceInEth;
+function toUSD(amount, reserve) {
+  return (
+    (parseInt(amount) / 10 ** reserve.decimals) *
+    (reserve.price.priceInEth / reserve.price.oracle.usdPriceEth)
+  );
 }
 
 /** RESERVE
@@ -45,7 +48,7 @@ exports.totalAaveDebt = (address) => {
   return new Promise((resolve, reject) => {
     queryAaveSubgraph(address)
       .then((resp) => {
-        resolve((calculateDebt(resp.users[0].reserves)));
+        resolve(calculateDebt(resp.users[0].reserves));
       })
       .catch((err) => {
         console.log(err);
@@ -61,25 +64,24 @@ function calculateDebt(reserves) {
 
   for (let i in reserves) {
     if (reserves[i].borrowHistory.length > 0) {
-      current_borrowed += toETH(
+      current_borrowed += toUSD(
         reserves[i].currentTotalDebt,
         reserves[i].reserve
       );
 
       for (let j in reserves[i].borrowHistory) {
-        total_borrowed += toETH(
+        total_borrowed += toUSD(
           reserves[i].borrowHistory[j].amount,
           reserves[i].reserve
         );
       }
 
-      positions.push(reserves[i].reserve)
+      positions.push(reserves[i]);
     }
   }
 
-  return({total_borrowed, current_borrowed, positions})
+  return { total_borrowed, current_borrowed, positions };
 }
-
 
 // ==================== REPAID ==================== //
 
@@ -92,20 +94,7 @@ exports.totalAaveRepaid = (address) => {
   return new Promise((resolve, reject) => {
     queryAaveSubgraph(address)
       .then((resp) => {
-        let total_repaid = 0;
-        let positions = [];
-        if (resp) {
-          if (resp.repayHistory) {
-            for (let i = 0; i < resp.repayHistory.length; i++) {
-              positions.push(resp.repayHistory[i]);
-              total_repaid +=
-                ((resp.repayHistory[i].amount / 10 ** 18) *
-                  resp.repayHistory[i].reserve.price.priceInEth) /
-                resp.repayHistory[i].reserve.price.oracle.usdPriceEth;
-            }
-          }
-        }
-        resolve({ total_repaid, positions });
+        resolve(calculateRepaid(resp.users[0].reserves));
       })
       .catch((err) => {
         console.log(err);
@@ -114,31 +103,136 @@ exports.totalAaveRepaid = (address) => {
   });
 };
 
+function calculateRepaid(reserves) {
+  let total_repaid = 0,
+    positions = [];
+
+  for (let i in reserves) {
+    for (let j in reserves[i].repayHistory) {
+      total_repaid += toUSD(
+        reserves[i].repayHistory[j].amount,
+        reserves[i].reserve
+      );
+    }
+
+    positions.push(...reserves[i].repayHistory);
+  }
+
+  return { total_repaid, positions };
+}
+
+// ==================== SUPPLIED ==================== //
+
 /**
  * Get total deposit supplied
  * @param {*} address
  * @returns uint total deposit
  */
-exports.totalAaveDeposits = (address) => {
+exports.totalSupplied = (address) => {
   return new Promise((resolve, reject) => {
     queryAaveSubgraph(address)
       .then((resp) => {
-        let deposits = 0;
-        if (resp) {
-          if (resp.depositHistory) {
-            for (let i = 0; i < resp.depositHistory.length; i++) {
-              deposits +=
-                ((resp.depositHistory[i].amount / 10 ** 18) *
-                  resp.depositHistory[i].reserve.price.priceInEth) /
-                resp.depositHistory[i].reserve.price.oracle.usdPriceEth;
-            }
-          }
-        }
-        resolve(deposits);
+        resolve(calculateSupplied(resp.users[0].reserves));
+
       })
       .catch((err) => {
         console.log(err);
         reject(err.response.data);
+      });
+  });
+};
+
+function calculateSupplied(reserves) {
+  let total_supplied = 0,
+    current_supplied = 0,
+    positions = [];
+
+  for (let i in reserves) {
+    if (reserves[i].depositHistory.length > 0) {
+      current_supplied += toUSD(
+        reserves[i].currentATokenBalance,
+        reserves[i].reserve
+      );
+
+      for (let j in reserves[i].depositHistory) {
+        total_supplied += toUSD(
+          reserves[i].depositHistory[j].amount,
+          reserves[i].reserve
+        );
+      }
+
+      positions.push(reserves[i]);
+    }
+  }
+
+  return { total_supplied, current_supplied, positions };
+}
+
+// ==================== REDEEMED ==================== //
+
+/**
+ * Get total deposit supplied
+ * @param {*} address
+ * @returns uint total deposit
+ */
+ exports.totalRedeemed = (address) => {
+  return new Promise((resolve, reject) => {
+    queryAaveSubgraph(address)
+      .then((resp) => {
+        resolve(calculateRedeemed(resp.users[0].reserves));
+
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err.response.data);
+      });
+  });
+};
+
+function calculateRedeemed(reserves) {
+
+    let total_redeemed = 0,
+      positions = [];
+  
+    for (let i in reserves) {
+      for (let j in reserves[i].redeemUnderlyingHistory) {
+        total_redeemed += toUSD(
+          reserves[i].redeemUnderlyingHistory[j].amount,
+          reserves[i].reserve
+        );
+      }
+      positions.push(...reserves[i].redeemUnderlyingHistory);
+    }
+  
+    return { total_redeemed, positions };
+  }
+
+// ==================== USER POSITION ==================== //
+
+exports.getUserPosition = (address) => {
+  return new Promise((resolve, reject) => {
+    queryAaveSubgraph(address)
+      .then(async (resp) => {
+        let repaid = calculateRepaid(resp.users[0].reserves);
+        let borrowed = calculateDebt(resp.users[0].reserves);
+        let supplied = calculateSupplied(resp.users[0].reserves);
+        let redeemed = calculateRedeemed(resp.users[0].reserves);
+
+        resolve({
+          total_borrowed: borrowed.total_borrowed, 
+          current_borrowed: borrowed.current_borrowed,
+          total_repaid: repaid.total_repaid, 
+
+          total_supplied: supplied.total_supplied,
+          current_supplied: supplied.current_supplied,
+
+          total_redeemed: redeemed.total_redeemed,
+          positions: resp.users[0].reserves
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err);
       });
   });
 };
@@ -149,53 +243,21 @@ exports.totalAaveDeposits = (address) => {
  * @param {*} address
  * @returns
  */
-exports.getDebtHistory = (address) => {
-  return new Promise((resolve, reject) => {
-    queryAaveSubgraph(address)
-      .then((resp) => {
-        let debt = 0;
-        for (let i = 0; i < resp.borrowHistory.length; i++) {
-          if (resp.borrowHistory[i].reserve.symbol == "BUSD") {
-            console.log(
-              resp.borrowHistory[i].amount / 10 ** 18,
-              resp.borrowHistory[i].reserve.symbol,
-              resp.borrowHistory[i].reserve.price.priceInEth /
-                resp.borrowHistory[i].reserve.price.oracle.usdPriceEth
-            );
-            debt +=
-              ((resp.borrowHistory[i].amount / 10 ** 18) *
-                resp.borrowHistory[i].reserve.price.priceInEth) /
-              resp.borrowHistory[i].reserve.price.oracle.usdPriceEth;
-          }
-        }
-        console.log(debt);
-        debt = 0;
-        console.log("===Repay===");
-        for (let i = 0; i < resp.repayHistory.length; i++) {
-          if (resp.repayHistory[i].reserve.symbol == "BUSD") {
-            console.log(
-              resp.repayHistory[i].amount / 10 ** 18,
-              resp.repayHistory[i].reserve.symbol,
-              resp.repayHistory[i].reserve.price.priceInEth /
-                resp.repayHistory[i].reserve.price.oracle.usdPriceEth
-            );
-            debt +=
-              ((resp.repayHistory[i].amount / 10 ** 18) *
-                resp.repayHistory[i].reserve.price.priceInEth) /
-              resp.repayHistory[i].reserve.price.oracle.usdPriceEth;
-          }
-        }
-        console.log(debt);
-        // resolve(debt);
-      })
-      .catch((err) => {
-        console.log(err);
-        reject(err.response.data);
-      });
-  });
-};
+// exports.getDebtHistory = (address) => {
+//   return new Promise((resolve, reject) => {
+//     queryAaveSubgraph(address)
+//       .then((resp) => {
+//         // TODO ...
+//       })
+//       .catch((err) => {
+//         console.log(err);
+//         reject(err.response.data);
+//       });
+//   });
+// };
 
-this.totalAaveDebt("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
+
+this.getUserPosition("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
   .then((resp) => {
     console.log(resp);
   })

@@ -2,7 +2,7 @@ require('dotenv').config();
 const { querySubgraph } = require("../../../clients/graph");
 
 const { readFileSync } = require('fs')
-const query = readFileSync('/Users/prasad/projects/chainscore/scorer/src/indexing/aave/SimpleFi/query.graphql').toString('utf-8')
+const query = readFileSync('/Users/prasad/projects/chainscore/scorer/src/indexing/aave/SimpleFi/query.gql').toString('utf-8')
 
 const { getPrice } = require("../../prices-endpoint");
 

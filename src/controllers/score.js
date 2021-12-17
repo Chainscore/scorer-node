@@ -34,7 +34,8 @@ exports.getScore = async (account) => {
   try {
     account = account.toLowerCase();
 
-    let total_value = (await total_balances(account)).total;
+    let value = await total_balances(account);
+    let total_value = value.total;
 
     const {
       total_borrowed,
@@ -100,9 +101,18 @@ exports.getScore = async (account) => {
       value_score,
       debt_score,
       repayment_score,
+      credit: {
+        total_borrowed,
+        current_borrowed,
+        total_repaid,
+        total_supplied,
+        current_supplied,
+        total_redeemed,
+      },
+      value
     };
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return {
       address: account,
       score: 0,

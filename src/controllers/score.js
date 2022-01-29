@@ -45,6 +45,13 @@ exports.getScore = async (account) => {
       total_redeemed,
     } = await getAllPositions(account);
 
+    console.log(total_borrowed,
+      current_borrowed,
+      total_repaid,
+      total_supplied,
+      current_supplied,
+      total_redeemed);
+
     /**
      * Valuation
      * total_value UP (till LIMIT) ==>> score UP
@@ -102,6 +109,7 @@ exports.getScore = async (account) => {
       repayment_score,
     };
   } catch (err) {
+    console.log(err);
     return {
       address: account,
       score: 0,

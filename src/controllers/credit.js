@@ -106,7 +106,7 @@ exports.getAllPositions = (address) => {
         total_repaid: comp.total_repaid + aave.total_repaid, 
 
         total_supplied: comp.total_supplied + aave.total_supplied,
-        current_supplied: comp.current_supplied + comp.current_supplied,
+        current_supplied: comp.current_supplied + aave.current_supplied,
 
         total_redeemed: comp.total_redeemed + aave.total_redeemed,
         positions: comp.positions.concat(aave.positions),

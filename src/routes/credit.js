@@ -2,19 +2,38 @@ const express = require("express");
 
 const router = express.Router();
 
-const { getSupplyPosition, getBorrowPosition } = require("../controllers/credit");
+const {
+  getSupplyPosition,
+  getBorrowPosition,
+  getAllPositions,
+} = require("../controllers/credit");
+
+/**
+ * GET ALL
+ */
+
+router.get("/getAllPositions/:address", async (req, res) => {
+  getAllPositions(req.params.address)
+    .then((result) => {
+      res.send({ ...result });
+    })
+    .catch((err) => {
+      res.send({ error: err.response });
+    });
+});
+
 
 /**
  * DEBT
  */
 router.get("/borrowed/total/:address", async (req, res) => {
-    getBorrowPosition(req.params.address)
-    .then(result => {
-        res.send({...result});
+  getBorrowPosition(req.params.address)
+    .then((result) => {
+      res.send({ ...result });
     })
-    .catch(err => {
-        res.send({error: err.response})
-    })
+    .catch((err) => {
+      res.send({ error: err.response });
+    });
 });
 
 /**
@@ -22,12 +41,12 @@ router.get("/borrowed/total/:address", async (req, res) => {
  */
 router.get("/supplied/total/:address", async (req, res) => {
   getSupplyPosition(req.params.address)
-    .then(result => {
-        res.send({...result});
+    .then((result) => {
+      res.send({ ...result });
     })
-    .catch(err => {
-        res.send({error: err.response})
-    })
+    .catch((err) => {
+      res.send({ error: err.response });
+    });
 });
 
 router.get("/supplied/history/:address", (req, res) => {
@@ -60,6 +79,5 @@ router.get("/comp/balances/:address", (req, res) => {
     res.send({ ...result });
   });
 });
-
 
 module.exports = router;

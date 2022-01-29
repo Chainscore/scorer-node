@@ -34,7 +34,8 @@ exports.getScore = async (account) => {
   try {
     account = account.toLowerCase();
 
-    let total_value = (await total_balances(account)).total;
+    let value = await total_balances(account);
+    let total_value = value.total;
 
     const {
       total_borrowed,
@@ -59,7 +60,7 @@ exports.getScore = async (account) => {
     let normalized_value = await getCoingeckoSpotPrice("ethereum");
 
     let eth_price = normalized_value.ethereum.usd;
-    let value_score = log(total_value + 1, 4500);
+    let value_score = log(total_value + 1, parseInt(eth_price));
     value_score = Math.abs(value_score.toFixed(16));
     console.log(`Value Score: ${value_score}`);
 
@@ -107,6 +108,15 @@ exports.getScore = async (account) => {
       value_score,
       debt_score,
       repayment_score,
+      credit: {
+        total_borrowed,
+        current_borrowed,
+        total_repaid,
+        total_supplied,
+        current_supplied,
+        total_redeemed,
+      },
+      value
     };
   } catch (err) {
     console.log(err);
@@ -121,13 +131,13 @@ exports.getScore = async (account) => {
   }
 };
 
-// this.getScore("0x8aceab8167c80cb8b3de7fa6228b889bb1130ee8")
-//   .then((resp) => {
-//     console.log(resp);
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
+this.getScore("0x933F12622c761B1bF5a4Ca444000F1d9C5D09e49")
+  .then((resp) => {
+    console.log(resp);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 // this.getScore("0x1D052CC8C480B98Cc9BDb24e5F0586d47F9bd4CA")
 //   .then((resp) => {

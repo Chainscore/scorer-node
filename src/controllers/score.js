@@ -30,7 +30,7 @@ const { log } = require("mathjs");
  *      - total redeemed history
  * @param {*} account
  */
-exports.getScore = async (account) => {
+exports.getFullScore = async (account) => {
   try {
     account = account.toLowerCase();
 
@@ -131,15 +131,19 @@ exports.getScore = async (account) => {
   }
 };
 
-this.getScore("0x933F12622c761B1bF5a4Ca444000F1d9C5D09e49")
-  .then((resp) => {
-    console.log(resp);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+exports.getScore = async (account) => {
+  let score = await this.getFullScore(account);
+  return {
+    address: score.address,
+    score: score.score,
+    supply_score: score.supply_score,
+    value_score: score.value_score,
+    debt_score: score.debt_score,
+    repayment_score: score.repayment_score
+  }
+}
 
-// this.getScore("0x1D052CC8C480B98Cc9BDb24e5F0586d47F9bd4CA")
+// this.getScore("0x933F12622c761B1bF5a4Ca444000F1d9C5D09e49")
 //   .then((resp) => {
 //     console.log(resp);
 //   })

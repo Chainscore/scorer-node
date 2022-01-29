@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
   `);
 });
 
-const { getScore } = require("../controllers/score");
+const { getScore, getFullScore } = require("../controllers/score");
 
 router.get('/score', (req, res) => {
   getScore('0x'+req.body.address)
@@ -26,8 +26,30 @@ router.get('/score', (req, res) => {
   })
 });
 
+router.get('/score/full', (req, res) => {
+  getFullScore('0x'+req.body.address)
+  .then((resp) => {
+    res.send({...resp});
+  })
+  .catch(err => {
+    console.log(err);
+    res.send(err);
+  })
+});
+
 router.get('/score/:address', (req, res) => {
   getScore(req.params.address)
+  .then((resp) => {
+    res.send({...resp});
+  })
+  .catch(err => {
+    console.log(err);
+    res.send(err);
+  })
+});
+
+router.get('/score/full/:address', (req, res) => {
+  getFullScore(req.params.address)
   .then((resp) => {
     res.send({...resp});
   })
